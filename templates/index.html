@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>HouseIQ · California Housing Predictor | Direct Input + Full Analytics</title>
+    <style>
+        /* ========== COMPLETE STYLES ========== */
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg: #0f1117;
+            --bg2: #161b27;
+            --bg3: #1e2535;
+            --card: #1a2030;
+            --card2: #202840;
+            --border: rgba(99,179,255,0.12);
+            --border2: rgba(99,179,255,0.22);
+            --accent: #4f8ef7;
+            --accent2: #63b3ff;
+            --accent3: #a78bfa;
+            --green: #34d399;
+            --amber: #fbbf24;
+            --red: #f87171;
+            --text: #e8eaf0;
+            --text2: #8b9db8;
+            --text3: #5a6a85;
+            --mono: 'Space Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+        .light-mode {
+            --bg: #f0f4fc;
+            --bg2: #e4eaf8;
+            --bg3: #d8e2f4;
+            --card: #ffffff;
+            --card2: #f5f8ff;
+            --border: rgba(60,100,200,0.13);
+            --border2: rgba(60,100,200,0.25);
+            --accent: #2563eb;
+            --accent2: #3b82f6;
+            --accent3: #7c3aed;
+            --green: #059669;
+            --amber: #d97706;
+            --red: #dc2626;
+            --text: #1a2030;
+            --text2: #4a5568;
+            --text3: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        #app {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { font-family: var(--mono); font-size: 15px; color: var(--accent2); display:flex;align-items:center;gap:8px; }
+        .logo-dot { width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+        .topbar-right { display:flex;align-items:center;gap:12px; }
+        .mode-btn {
+            cursor:pointer; background:var(--bg3); border:1px solid var(--border);
+            color:var(--text2); padding:6px 14px; border-radius:20px; font-size:13px;
+            font-family:var(--sans); transition:all 0.2s;
+        }
+        .mode-btn:hover { border-color:var(--border2); color:var(--text); }
+        .nav { display:flex;gap:0; border-bottom:1px solid var(--border); background:var(--card); padding:0 1.5rem; }
+        .nav-btn {
+            padding:10px 18px; font-size:13px; font-family:var(--sans);
+            background:none; border:none; color:var(--text2); cursor:pointer;
+            border-bottom:2px solid transparent; transition:all 0.2s; margin-bottom:-1px;
+        }
+        .nav-btn.active { color:var(--accent2); border-bottom-color:var(--accent2); }
+        .nav-btn:hover:not(.active) { color:var(--text); }
+        .page { display:none; padding:1.5rem; }
+        .page.active { display:block; }
+        .auth-wrap { max-width:400px; margin:3rem auto; }
+        .auth-card {
+            background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2rem;
+        }
+        .auth-title { font-size:20px; font-weight:500; margin-bottom:4px; color:var(--text); }
+        .auth-sub { font-size:13px; color:var(--text2); margin-bottom:1.5rem; }
+        .form-group { margin-bottom:1rem; }
+        .form-label { font-size:12px; color:var(--text2); margin-bottom:5px; display:block; text-transform:uppercase; letter-spacing:.05em; }
+        .form-input {
+            width:100%; background:var(--bg3); border:1px solid var(--border);
+            color:var(--text); padding:10px 14px; border-radius:8px; font-size:14px;
+            font-family:var(--sans); outline:none; transition:border 0.2s;
+        }
+        .form-input:focus { border-color:var(--accent2); }
+        .btn-primary {
+            width:100%; background:var(--accent); color:#fff; border:none;
+            padding:11px; border-radius:8px; font-size:14px; font-family:var(--sans);
+            cursor:pointer; font-weight:500; transition:opacity 0.2s; margin-top:.5rem;
+        }
+        .btn-primary:hover { opacity:.88; }
+        .auth-switch { text-align:center; margin-top:1rem; font-size:13px; color:var(--text2); }
+        .auth-switch a { color:var(--accent2); cursor:pointer; text-decoration:underline; }
+        .section-title { font-size:15px; font-weight:500; color:var(--text); margin-bottom:1rem; display:flex;align-items:center;gap:8px; }
+        .badge { font-size:10px; background:rgba(79,142,247,.18); color:var(--accent2); padding:2px 8px; border-radius:20px; font-family:var(--mono); }
+        .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:1.5rem; }
+        .metric-card {
+            background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem 1.25rem;
+        }
+        .metric-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+        .metric-val { font-size:22px; font-weight:500; color:var(--text); font-family:var(--mono); }
+        .metric-sub { font-size:11px; margin-top:3px; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+        .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem; }
+        .chart-card {
+            background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem;
+        }
+        .predict-wrap { display:grid; grid-template-columns:1.1fr 1fr; gap:1.25rem; }
+        .predict-form { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+        .predict-result { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; display:flex;flex-direction:column; }
+        .input-row { margin-bottom: 1rem; }
+        .input-label { font-size:12px; color:var(--text2); margin-bottom:5px; display: flex; justify-content: space-between; letter-spacing: .03em; }
+        .input-label span { font-family:var(--mono); color:var(--accent2); font-weight: 500; background: rgba(99,179,255,0.08); padding: 0 6px; border-radius: 12px; }
+        .numeric-input {
+            width: 100%; background: var(--bg3); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 12px; border-radius: 10px;
+            font-size: 14px; font-family: var(--mono); font-weight: 500;
+            transition: 0.2s; outline: none;
+        }
+        .numeric-input:focus { border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(99,179,255,0.2); }
+        .select-input {
+            width:100%; background:var(--bg3); border:1px solid var(--border);
+            color:var(--text); padding:10px 12px; border-radius:10px; font-size:13px;
+            font-family:var(--sans); outline:none; cursor: pointer;
+        }
+        .predict-btn {
+            width:100%; background:var(--accent); color:#fff; border:none;
+            padding:12px; border-radius:10px; font-size:14px; font-family:var(--sans);
+            cursor:pointer; font-weight:600; margin-top:.75rem; transition:all 0.2s;
+            display:flex;align-items:center;justify-content:center;gap:8px;
+        }
+        .predict-btn:hover { opacity:.88; transform: translateY(-1px); }
+        .price-display {
+            flex:1; display:flex;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center; gap:.5rem;
+        }
+        .price-val { font-size:44px; font-weight:500; color:var(--green); font-family:var(--mono); letter-spacing:-0.02em; }
+        .confidence-bar { width:100%; background:var(--bg3); border-radius:4px; height:6px; margin-top:.3rem; }
+        .confidence-fill { height:6px; background:var(--green); border-radius:4px; transition:width 0.6s; }
+        .feat-section { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+        .feat-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .feat-table th { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; padding:6px 10px; text-align:left; border-bottom:1px solid var(--border); }
+        .feat-table td { padding:8px 10px; border-bottom:1px solid rgba(99,179,255,0.05); color:var(--text2); vertical-align:middle; }
+        .feat-table td:first-child { color:var(--text); font-weight:500; font-family:var(--mono); font-size:12px; }
+        .feat-bar-wrap { width:120px; height:6px; background:var(--bg3); border-radius:3px; display:inline-block;vertical-align:middle; }
+        .feat-bar { height:6px; border-radius:3px; }
+        .tag-pos { font-size:10px; background:rgba(52,211,153,.15); color:var(--green); padding:2px 8px; border-radius:10px; }
+        .tag-neg { font-size:10px; background:rgba(248,113,113,.15); color:var(--red); padding:2px 8px; border-radius:10px; }
+        .stat-row { display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem; }
+        .stat-mini { background:var(--bg3); border-radius:8px; padding:.75rem 1rem; }
+        .stat-mini-label { font-size:11px; color:var(--text3); }
+        .stat-mini-val { font-size:16px; font-weight:500; font-family:var(--mono); color:var(--text); margin-top:2px; }
+        .toast { position:fixed;bottom:1.5rem;right:1.5rem;background:var(--card);border:1px solid var(--border2);padding:.75rem 1.25rem;border-radius:10px;font-size:13px;color:var(--text);z-index:999;transform:translateX(120%);transition:transform .3s; }
+        .toast.show { transform:translateX(0); }
+        .user-chip { background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px; }
+        .user-dot { width:7px;height:7px;border-radius:50%;background:var(--green); }
+        .logout-btn { cursor:pointer;font-size:12px;color:var(--red);background:none;border:none;font-family:var(--sans);padding:4px 8px; }
+        .corr-matrix { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; text-align: center; font-size: 12px; margin-top: 12px; }
+        .corr-cell { background: var(--bg3); padding: 8px 4px; border-radius: 8px; font-family: var(--mono); }
+        .corr-header { font-weight: 600; color: var(--accent2); background: var(--card2); }
+        .helper-note { font-size: 11px; color: var(--text3); margin-top: 0.5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 0.75rem; }
+        @media(max-width:700px){
+            .metrics{grid-template-columns:1fr 1fr}
+            .grid2,.grid3,.predict-wrap{grid-template-columns:1fr}
+            .corr-matrix { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="topbar">
+        <div class="logo"><div class="logo-dot"></div>HouseIQ<span style="color:var(--text3);font-size:12px;">.ai</span></div>
+        <div class="topbar-right">
+            <div id="user-area" style="display:none">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <div class="user-chip"><div class="user-dot"></div><span id="user-name-display">User</span></div>
+                    <button class="logout-btn" onclick="logout()">Sign out</button>
+                </div>
+            </div>
+            <button class="mode-btn" onclick="toggleMode()" id="mode-btn">☀ Light</button>
+        </div>
+    </div>
+
+    <div class="nav" id="main-nav" style="display:none">
+        <button class="nav-btn active" onclick="showPage('dashboard',this)">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('predict',this)">Predict</button>
+        <button class="nav-btn" onclick="showPage('features',this)">Feature Engineering</button>
+        <button class="nav-btn" onclick="showPage('analytics',this)">Analytics</button>
+    </div>
+
+    <div id="page-auth" class="page active">
+        <div class="auth-wrap">
+            <div id="login-card" class="auth-card">
+                <div class="auth-title">Welcome back</div>
+                <div class="auth-sub">Sign in to HouseIQ (demo mode)</div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" id="login-email" type="email" placeholder="you@email.com" value="demo@houseiq.ai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input class="form-input" id="login-pass" type="password" placeholder="any password" value="demo123">
+                </div>
+                <button class="btn-primary" onclick="login()">Sign In</button>
+                <div class="auth-switch">Don't have an account? <a onclick="showSignup()">Create one</a></div>
+            </div>
+            <div id="signup-card" class="auth-card" style="display:none">
+                <div class="auth-title">Create account</div>
+                <div class="auth-sub">Start predicting California housing prices</div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input class="form-input" id="su-name" type="text" placeholder="Alex Johnson">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" id="su-email" type="email" placeholder="you@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input class="form-input" id="su-pass" type="password" placeholder="Create a password">
+                </div>
+                <button class="btn-primary" onclick="signup()">Create Account</button>
+                <div class="auth-switch">Already have an account? <a onclick="showLogin()">Sign in</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page">
+        <div class="metrics">
+            <div class="metric-card"><div class="metric-label">Total Records</div><div class="metric-val" id="total-records">20,640</div><div class="metric-sub">California districts</div></div>
+            <div class="metric-card"><div class="metric-label">Avg House Value</div><div class="metric-val" id="avg-price">$206K</div><div class="metric-sub" style="color:var(--green)">↑ coastal premium</div></div>
+            <div class="metric-card"><div class="metric-label">Model Accuracy</div><div class="metric-val" id="model-acc">89.4%</div><div class="metric-sub" style="color:var(--green)">Gradient Boosting</div></div>
+            <div class="metric-card"><div class="metric-label">Features Used</div><div class="metric-val" id="feat-count">14</div><div class="metric-sub">Engineered + original</div></div>
+        </div>
+        <div class="grid2">
+            <div class="chart-card"><div class="section-title">Price by ocean proximity <span class="badge">histogram</span></div><div style="position:relative;height:230px;"><canvas id="chart-prox"></canvas></div></div>
+            <div class="chart-card"><div class="section-title">Median income vs house value <span class="badge">scatter</span></div><div style="position:relative;height:230px;"><canvas id="chart-scatter"></canvas></div></div>
+        </div>
+        <div class="grid3">
+            <div class="chart-card"><div class="section-title">Housing age distribution</div><div style="position:relative;height:180px;"><canvas id="chart-age"></canvas></div></div>
+            <div class="chart-card"><div class="section-title">Rooms per household</div><div style="position:relative;height:180px;"><canvas id="chart-rooms"></canvas></div></div>
+            <div class="chart-card"><div class="section-title">Ocean proximity share</div><div style="position:relative;height:180px;"><canvas id="chart-pie"></canvas></div></div>
+        </div>
+    </div>
+
+    <!-- PREDICTION PAGE: DIRECT INPUTS -->
+    <div id="page-predict" class="page">
+        <div class="section-title" style="margin-bottom:1rem">AI Price Prediction · Raw Input <span class="badge">No scaling</span></div>
+        <div class="predict-wrap">
+            <div class="predict-form">
+                <div style="font-size:12px;color:var(--text3);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em">📊 Property characteristics (raw)</div>
+                <div class="input-row"><div class="input-label">Median Income (×$10K) <span id="v-income">4.50</span></div><input type="number" class="numeric-input" id="input-income" step="0.1" min="0.5" max="15" value="4.5" oninput="updateRaw('income', this.value)"></div>
+                <div class="input-row"><div class="input-label">Housing Median Age (years) <span id="v-age">28</span></div><input type="number" class="numeric-input" id="input-age" step="1" min="1" max="52" value="28" oninput="updateRaw('age', this.value)"></div>
+                <div class="input-row"><div class="input-label">Total Rooms <span id="v-rooms">2000</span></div><input type="number" class="numeric-input" id="input-rooms" step="50" min="50" max="20000" value="2000" oninput="updateRaw('rooms', this.value)"></div>
+                <div class="input-row"><div class="input-label">Total Bedrooms <span id="v-beds">400</span></div><input type="number" class="numeric-input" id="input-beds" step="10" min="10" max="4000" value="400" oninput="updateRaw('beds', this.value)"></div>
+                <div class="input-row"><div class="input-label">Population <span id="v-pop">1400</span></div><input type="number" class="numeric-input" id="input-pop" step="50" min="50" max="50000" value="1400" oninput="updateRaw('pop', this.value)"></div>
+                <div class="input-row"><div class="input-label">Households <span id="v-hh">500</span></div><input type="number" class="numeric-input" id="input-hh" step="10" min="10" max="15000" value="500" oninput="updateRaw('hh', this.value)"></div>
+                <div class="input-row"><div class="input-label">Ocean Proximity <span id="v-ocean">NEAR BAY</span></div><select class="select-input" id="ocean-sel" onchange="updateOceanRaw(this.value)"><option>NEAR BAY</option><option>&lt;1H OCEAN</option><option>INLAND</option><option>NEAR OCEAN</option><option>ISLAND</option></select></div>
+                <button class="predict-btn" onclick="runPrediction()"><span id="btn-txt">🏡 Predict Price with AI</span></button>
+                <div class="helper-note">✔ Raw numeric inputs — no scaling. Model uses real-world coefficients.</div>
+            </div>
+            <div class="predict-result">
+                <div style="font-size:12px;color:var(--text3);text-transform:uppercase;margin-bottom:.5rem">🔮 Predicted value</div>
+                <div id="result-area" class="price-display"><div style="color:var(--text3);font-size:13px">Enter property data and click predict</div></div>
+            </div>
+        </div>
+        <div id="ai-analysis" style="margin-top:1rem"></div>
+    </div>
+
+    <!-- FEATURE ENGINEERING -->
+    <div id="page-features" class="page">
+        <div class="grid2" style="margin-bottom:1rem">
+            <div class="feat-section"><div class="section-title">Engineered features <span class="badge">+5 derived</span></div><table class="feat-table"><thead><tr><th>Feature</th><th>Formula</th><th>Importance</th><th>Impact</th></tr></thead><tbody id="engineered-table"></tbody></table></div>
+            <div class="feat-section"><div class="section-title">Original features <span class="badge">importance rank</span></div><table class="feat-table"><thead><tr><th>Feature</th><th>Type</th><th>Importance</th><th>Impact</th></tr></thead><tbody id="original-table"></tbody></table></div>
+        </div>
+        <div class="grid2">
+            <div class="chart-card"><div class="section-title">Correlation heatmap (key features)</div><div id="correlation-heatmap" style="padding: 8px;"></div></div>
+            <div class="chart-card"><div class="section-title">Feature importance (model)</div><div style="position:relative;height:240px;"><canvas id="chart-imp"></canvas></div></div>
+        </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="page-analytics" class="page">
+        <div class="stat-row">
+            <div class="stat-mini"><div class="stat-mini-label">Missing values handled</div><div class="stat-mini-val" id="missing-val">0 → 0</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Price range</div><div class="stat-mini-val" id="price-range">$50K – $500K</div></div>
+            <div class="stat-mini"><div class="stat-mini-label">Train / Test split</div><div class="stat-mini-val" id="split-val">80% / 20%</div></div>
+        </div>
+        <div class="grid2">
+            <div class="chart-card"><div class="section-title">Model comparison <span class="badge">R² score</span></div><div style="height:220px;"><canvas id="chart-models"></canvas></div></div>
+            <div class="chart-card"><div class="section-title">Predicted vs actual values</div><div style="height:220px;"><canvas id="chart-pred"></canvas></div></div>
+        </div>
+        <div class="chart-card"><div class="section-title">Price by region (geographic bins) <span class="badge">lat/lon buckets</span></div><div style="height:200px;"><canvas id="chart-geo"></canvas></div></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+    // ========== GLOBALS & MOCK DATA ==========
+    let darkMode = true;
+    let currentUser = null;
+    let charts = {};
+
+    let rawInputs = { income:4.5, age:28, rooms:2000, beds:400, pop:1400, hh:500, ocean:'NEAR BAY' };
+    function updateRaw(k,v) { rawInputs[k]=parseFloat(v); document.getElementById(`v-${k}`).innerText = (k==='income')?parseFloat(v).toFixed(2):v; }
+    function updateOceanRaw(val) { rawInputs.ocean=val; document.getElementById('v-ocean').innerText=val; }
+
+    // Mock data generators
+    const oceanAvg = { 'NEAR BAY': 325000, '<1H OCEAN': 280000, 'INLAND': 185000, 'NEAR OCEAN': 410000, 'ISLAND': 560000 };
+    const oceanCounts = { 'NEAR BAY': 3200, '<1H OCEAN': 5400, 'INLAND': 8900, 'NEAR OCEAN': 2800, 'ISLAND': 340 };
+    const scatterMock = Array.from({length: 80}, () => ({ MedInc: 2+Math.random()*8, MedHouseVal: 50000+Math.random()*450000 }));
+    const ageDist = { '0-15': 2800, '15-30': 7200, '30-45': 6400, '45+': 4240 };
+    const roomsDist = { '<1000': 1800, '1000-2000': 7200, '2000-3000': 6400, '>3000': 5240 };
+
+    function toast(msg, type) { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.classList.remove('show'),2500); }
+    function toggleMode() { darkMode=!darkMode; document.getElementById('app').classList.toggle('light-mode',!darkMode); document.getElementById('mode-btn').textContent=darkMode?'☀ Light':'☾ Dark'; updateChartTheme(); }
+    function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+    // AUTH (mock client-side)
+    function login() { const email=document.getElementById('login-email').value; if(email){ currentUser={name:email.split('@')[0]||'Demo'}; enterApp(); toast(`Welcome ${currentUser.name}!`,'success');} else toast('Enter email',''); }
+    function signup() { const name=document.getElementById('su-name').value; if(name){ currentUser={name:name.split(' ')[0]}; enterApp(); toast('Account created','success');} else toast('Fill name',''); }
+    function logout() { currentUser=null; document.getElementById('page-auth').classList.add('active'); document.getElementById('main-nav').style.display='none'; document.getElementById('user-area').style.display='none'; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-auth').classList.add('active'); showLogin(); toast('Signed out',''); }
+    function showSignup() { document.getElementById('login-card').style.display='none'; document.getElementById('signup-card').style.display='block'; }
+    function showLogin() { document.getElementById('signup-card').style.display='none'; document.getElementById('login-card').style.display='block'; }
+    function enterApp() { document.getElementById('page-auth').classList.remove('active'); document.getElementById('main-nav').style.display='flex'; document.getElementById('user-area').style.display='block'; document.getElementById('user-name-display').textContent=currentUser.name; showPage('dashboard', document.querySelector('.nav-btn')); }
+
+    function showPage(id, btn) {
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        if(btn) btn.classList.add('active');
+        if(id==='dashboard') renderDashboardCharts();
+        if(id==='features') { renderFeatureTables(); renderFeatureCharts(); }
+        if(id==='analytics') renderAnalyticsCharts();
+    }
+
+    function renderDashboardCharts() {
+        destroyChart('prox'); destroyChart('scatter'); destroyChart('age'); destroyChart('rooms'); destroyChart('pie');
+        charts.prox = new Chart(document.getElementById('chart-prox'), { type:'bar', data:{ labels:Object.keys(oceanAvg), datasets:[{label:'Avg Price ($)',data:Object.values(oceanAvg),backgroundColor:'#4f8ef7',borderRadius:6}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{y:{ticks:{callback:v=>'$'+(v/1000)+'K'}}} } });
+        charts.scatter = new Chart(document.getElementById('chart-scatter'), { type:'scatter', data:{ datasets:[{label:'District',data:scatterMock.map(p=>({x:p.MedInc, y:p.MedHouseVal})), backgroundColor:'rgba(79,142,247,0.6)', pointRadius:4}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{x:{title:{display:true,text:'Median Income'}}, y:{title:{display:true,text:'House Value ($)'}, ticks:{callback:v=>'$'+(v/1000)+'K'}}} } });
+        charts.age = new Chart(document.getElementById('chart-age'), { type:'bar', data:{ labels:Object.keys(ageDist), datasets:[{data:Object.values(ageDist), backgroundColor:'#a78bfa'}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} } });
+        charts.rooms = new Chart(document.getElementById('chart-rooms'), { type:'bar', data:{ labels:Object.keys(roomsDist), datasets:[{data:Object.values(roomsDist), backgroundColor:'#34d399'}] }, options:{ responsive:true, maintainAspectRatio:false } });
+        charts.pie = new Chart(document.getElementById('chart-pie'), { type:'doughnut', data:{ labels:Object.keys(oceanCounts), datasets:[{data:Object.values(oceanCounts), backgroundColor:['#4f8ef7','#a78bfa','#34d399','#fbbf24','#f87171']}] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} } });
+    }
+
+    function renderFeatureTables() {
+        const engineered = [{name:'rooms_per_household', formula:'rooms/households', importance:0.24, impact:'positive'},{name:'bedrooms_ratio', formula:'bedrooms/rooms', importance:0.18, impact:'negative'},{name:'population_density', formula:'pop/households', importance:0.16, impact:'negative'},{name:'rooms_per_capita', formula:'rooms/pop', importance:0.12, impact:'positive'},{name:'income_sq', formula:'MedInc²', importance:0.09, impact:'positive'}];
+        const original = [{name:'MedInc', type:'continuous', importance:0.45, impact:'positive'},{name:'AveRooms', type:'continuous', importance:0.21, impact:'positive'},{name:'Latitude', type:'geo', importance:0.13, impact:'negative'},{name:'OceanProx', type:'categorical', importance:0.12, impact:'positive'},{name:'HouseAge', type:'continuous', importance:0.09, impact:'mixed'}];
+        document.getElementById('engineered-table').innerHTML = engineered.map(f => `<tr><td>${f.name}</td><td>${f.formula}</td><td><div class="feat-bar-wrap"><div class="feat-bar" style="width:${f.importance*100}%;background:var(--accent2)"></div></div></td><td><span class="${f.impact==='positive'?'tag-pos':'tag-neg'}">${f.impact==='positive'?'+high':'–mid'}</span></td></tr>`).join('');
+        document.getElementById('original-table').innerHTML = original.map(f => `<tr><td>${f.name}</td><td>${f.type}</td><td><div class="feat-bar-wrap"><div class="feat-bar" style="width:${f.importance*100}%;background:var(--green)"></div></div></td><td><span class="${f.impact==='positive'?'tag-pos':'tag-neg'}">${f.impact==='positive'?'+critical':'–high'}</span></td></tr>`).join('');
+        // Correlation heatmap (grid)
+        const features = ['MedInc','AveRooms','HouseAge','PopDensity','Latitude','Price'];
+        const corrMatrix = [
+            [1.00, 0.62, 0.14, -0.23, -0.11, 0.68],
+            [0.62, 1.00, -0.06, -0.32, -0.17, 0.49],
+            [0.14, -0.06, 1.00, 0.03, 0.08, 0.12],
+            [-0.23, -0.32, 0.03, 1.00, 0.21, -0.34],
+            [-0.11, -0.17, 0.08, 0.21, 1.00, -0.28],
+            [0.68, 0.49, 0.12, -0.34, -0.28, 1.00]
+        ];
+        let html = `<div style="overflow-x:auto"><div class="corr-matrix"><div class="corr-cell corr-header"></div>${features.map(f=>`<div class="corr-cell corr-header">${f}</div>`).join('')}</div>`;
+        for(let i=0;i<features.length;i++) {
+            html += `<div class="corr-matrix"><div class="corr-cell corr-header">${features[i]}</div>`;
+            for(let j=0;j<features.length;j++) {
+                let val = corrMatrix[i][j];
+                let bg = `rgba(52,211,153,${Math.abs(val)*0.7})`;
+                if(val<0) bg = `rgba(248,113,113,${Math.abs(val)*0.7})`;
+                html += `<div class="corr-cell" style="background:${bg}; color:white; font-weight:500;">${val.toFixed(2)}</div>`;
+            }
+            html += `</div>`;
+        }
+        document.getElementById('correlation-heatmap').innerHTML = html + `</div>`;
+    }
+
+    function renderFeatureCharts() {
+        destroyChart('imp');
+        charts.imp = new Chart(document.getElementById('chart-imp'), { type:'bar', data:{ labels:['MedInc','AveRooms','RoomsPerHH','Latitude','OceanProx','HouseAge'], datasets:[{data:[0.42,0.18,0.14,0.11,0.09,0.06], backgroundColor:'#34d399'}] }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, scales:{x:{ticks:{callback:v=>(v*100).toFixed(0)+'%'}}} } });
+    }
+
+    function renderAnalyticsCharts() {
+        destroyChart('models'); destroyChart('pred'); destroyChart('geo');
+        charts.models = new Chart(document.getElementById('chart-models'), { type:'bar', data:{ labels:['Linear Regression','Random Forest','Gradient Boosting','XGBoost'], datasets:[{label:'R² Score', data:[0.71,0.84,0.894,0.901], backgroundColor:'#4f8ef7', borderRadius:6}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{y:{min:0.5,max:1,ticks:{callback:v=>v.toFixed(2)}}} } });
+        const predActual = Array.from({length:60}, () => ({ actual:80000+Math.random()*420000, predicted:80000+Math.random()*420000 }));
+        charts.pred = new Chart(document.getElementById('chart-pred'), { type:'scatter', data:{ datasets:[{label:'Predictions', data:predActual.map(p=>({x:p.actual, y:p.predicted})), backgroundColor:'rgba(79,142,247,0.6)', pointRadius:4}, {label:'Perfect fit', data:[{x:50000,y:50000},{x:500000,y:500000}], type:'line', borderColor:'#34d399', borderWidth:2, borderDash:[5,5], pointRadius:0}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{x:{title:{display:true,text:'Actual Price ($)'}, ticks:{callback:v=>'$'+(v/1000)+'K'}}, y:{title:{display:true,text:'Predicted Price ($)'}, ticks:{callback:v=>'$'+(v/1000)+'K'}}} } });
+        charts.geo = new Chart(document.getElementById('chart-geo'), { type:'bar', data:{ labels:['North Coast','South Coast','Central Valley','Sierra','Desert'], datasets:[{data:[425,387,189,215,178], backgroundColor:'rgba(99,179,255,0.8)'}] }, options:{ responsive:true, maintainAspectRatio:false, scales:{y:{title:{display:true,text:'Price ($K)'}}} } });
+    }
+
+    function updateChartTheme() { Object.values(charts).forEach(c=>c?.destroy()); charts={}; const active=document.querySelector('.page.active')?.id; if(active==='page-dashboard') renderDashboardCharts(); else if(active==='page-features') { renderFeatureTables(); renderFeatureCharts(); } else if(active==='page-analytics') renderAnalyticsCharts(); }
+
+    // PREDICTION ENGINE (local mock, no scaling)
+    async function runPrediction() {
+        const btn=document.getElementById('btn-txt'); btn.innerHTML='🧠 Computing...';
+        document.getElementById('result-area').innerHTML='<div class="ai-loading"><div class="spinner"></div><div style="font-size:13px">Running ML inference (raw inputs)</div></div>';
+        setTimeout(() => {
+            const inc=parseFloat(document.getElementById('input-income').value);
+            const age=parseFloat(document.getElementById('input-age').value);
+            const rooms=parseFloat(document.getElementById('input-rooms').value);
+            const beds=parseFloat(document.getElementById('input-beds').value);
+            const pop=parseFloat(document.getElementById('input-pop').value);
+            const hh=parseFloat(document.getElementById('input-hh').value);
+            const ocean=document.getElementById('ocean-sel').value;
+            // realistic formula (no scaling)
+            let basePrice = 45000 + inc * 38000;
+            basePrice += (rooms / hh) * 15000;
+            basePrice -= age * 380;
+            if(beds>0) basePrice += (beds/hh)*18000;
+            basePrice -= (pop/hh)*220;
+            const oceanMap = {'NEAR BAY': 51000, '<1H OCEAN': 32000, 'INLAND': -28000, 'NEAR OCEAN': 67000, 'ISLAND': 125000};
+            basePrice += oceanMap[ocean] || 0;
+            let price = Math.max(85000, Math.min(720000, basePrice));
+            let confidence = 75 + Math.min(20, (inc/8)*12) - (age>40?5:0);
+            confidence = Math.min(96, Math.max(68, confidence));
+            const analysis = `🔍 Model insights: Median income ($${inc*10000}) accounts for ${Math.round(inc*12)}% of value prediction. ${ocean} location adds $${oceanMap[ocean]?.toLocaleString()}. Property has ${Math.round(rooms/hh)} rooms per household. Confidence: ${confidence}% based on feature alignment.`;
+            document.getElementById('result-area').innerHTML = `<div class="price-label">Predicted Median House Value</div><div class="price-val">$${(price/1000).toFixed(0)}K</div><div class="price-range">Range: $${(price*0.92/1000).toFixed(0)}K – $${(price*1.08/1000).toFixed(0)}K</div><div style="width:100%;margin-top:.5rem"><div style="display:flex;justify-content:space-between;font-size:11px"><span>Model confidence</span><span>${Math.floor(confidence)}%</span></div><div class="confidence-bar"><div class="confidence-fill" style="width:${confidence}%"></div></div></div>`;
+            document.getElementById('ai-analysis').innerHTML = `<div class="chart-card"><div class="section-title">AI analysis <span class="badge">Insights</span></div><div style="font-size:13px;color:var(--text2);line-height:1.8">${analysis}</div></div>`;
+            btn.innerHTML='🏡 Predict Price with AI';
+        }, 450);
+    }
+
+    // init
+    window.onload = () => { renderDashboardCharts(); renderFeatureTables(); renderFeatureCharts(); renderAnalyticsCharts(); };
+    document.querySelectorAll('.numeric-input').forEach(inp=>{ inp.addEventListener('input',function(e){ updateRaw(this.id.replace('input-',''), this.value); }); });
+</script>
+</body>
+</html>
